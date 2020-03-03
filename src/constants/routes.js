@@ -1,0 +1,13 @@
+export const LANDING = '/';
+export const SIGN_UP = '/signup';
+export const SIGN_IN = '/signin';
+export const HOME = '/home';
+export const ACCOUNT = '/account';
+export const PASSWORD_FORGET = '/pw-forget';
+export const ADMIN = '/admin';
+export const ADMIN_USERS = '/admin/users'
+export const ADMIN_USERS_DETAILS = '/admin/users/:id';
+export const SENSOR_DETAILS = '/sensor/:id';
+export const ACTUATOR_DETAILS = '/actuator/:id';
+export const ADMIN_SENSORTYPES = '/admin/sensortypes';
+export const ADMIN_SENSORTYPES_DETAILS = '/admin/sensortypes/:id';
