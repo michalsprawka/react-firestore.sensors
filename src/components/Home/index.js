@@ -308,7 +308,7 @@ class HomeBaseComponent extends Component {
     return (
       <div style={{ margin: "30px" }}>
         <Header as="h2" textAlign="center">
-          Home Page Jesteś zalogowany jako {this.props.authUser.username}
+          Home Page You are logged as {this.props.authUser.username}
         </Header>
         {loading ? (
           <Loader active inline />
@@ -386,28 +386,7 @@ class HomeBaseComponent extends Component {
                       </Table.Cell>
 
                       <Table.Cell>
-                        {/* <Modal
-                       open = {actuator.openModal} 
-                        closeOnDimmerClick={true}
-                        onClose={()=>this.close(i)}
-                       // st={actuator.state}
-                      //content="your state" 
-                        trigger={<Button onClick={()=>this.open(i)}>Change!</Button>} basic size='small'>
-                        <Header icon='lightbulb outline' content='Change state of actuator' />
-                          <Modal.Content>
-                            <p>
-                              Your current state is {actuator.state}, would you like change it?
-                            </p>
-                          </Modal.Content>
-                          <Modal.Actions>
-                            <Button basic color='red' inverted onClick={()=>this.close(i)}>
-                              <Icon name='remove' /> No
-                            </Button>
-                            <Button color='green' inverted  onClick={()=>this.toggleState(actuator.uid, actuator.state)}>
-                              <Icon name='checkmark' /> Yes
-                            </Button>
-                          </Modal.Actions>
-                        </Modal> */}
+                       
                         {getModal(
                           parseInt(actuator.typeModalIndex),
                           actuator.state,
@@ -447,7 +426,7 @@ class HomeBaseComponent extends Component {
                       {addSensorVisible && (
                         <Form onSubmit={event => this.onAddSensor(event)}>
                           <Form.Field>
-                            <label>Nazwa sensora</label>
+                            <label>Sensor`s name</label>
                             <input
                               name="sensorName"
                               type="text"
@@ -500,7 +479,7 @@ class HomeBaseComponent extends Component {
                       {addActuatorVisible && (
                         <Form onSubmit={event => this.onAddActuator(event)}>
                           <Form.Field>
-                            <label>Nazwa actuatora</label>
+                            <label>Actuator`s name</label>
                             <input
                               name="actuatorName"
                               type="text"

@@ -229,7 +229,7 @@ class UserListBase extends Component {
         </Divider>
         <Form onSubmit={event => this.onCreateSensorType(event)}>
           <Form.Field>
-            <label>Nazwa sensora</label>
+            <label>Name</label>
             <input
               name="sensorName"
               type="text"
@@ -238,7 +238,7 @@ class UserListBase extends Component {
             />
           </Form.Field>
           <Form.Field>
-            <label>Opis sensora</label>
+            <label>Description</label>
             <input
               name="sensorDescription"
               type="text"
@@ -247,7 +247,7 @@ class UserListBase extends Component {
             />
           </Form.Field>
           <Form.Field>
-            <label>Szczegółowy Opis sensora</label>
+            <label>Detailed description</label>
             <textarea
               name="detailedSensorDescription"
               type="textarea"
@@ -306,7 +306,7 @@ class UserListBase extends Component {
         </Divider>
         <Form onSubmit={this.onCreateActuatorType}>
           <Form.Field>
-            <label>Nazwa aktuatora</label>
+            <label>Name</label>
             <input
               name="actuatorName"
               type="text"
@@ -324,7 +324,7 @@ class UserListBase extends Component {
             />
           </Form.Field>
           <Form.Field>
-            <label>Opis aktuatora</label>
+            <label>Description</label>
             <textarea
               name="actuatorDescription"
               type="textarea"
