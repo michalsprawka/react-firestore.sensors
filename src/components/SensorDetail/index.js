@@ -14,19 +14,19 @@ import { withFirebase } from "../Firebase";
 import { Header, Divider, Grid, Form, Button, Modal, Icon } from "semantic-ui-react";
 import * as ROUTES from "../../constants/routes";
 class SensorDetailBaseComponent extends Component {
-  constructor(props) {
-    super(props);
+ // constructor(props) {
+   // super(props);
 
-    this.state = {
+    state = {
       loading: false,
       sensor: null,
-      ...props.location.state,
+      ...this.props.location.state,
       sensorName: "",
       sensorTypeID: "",
       resetCheck: true,
       open: false
     };
-  }
+  //}
 
   componentDidMount() {
     if (this.state.sensor) {
