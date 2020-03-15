@@ -166,7 +166,7 @@ class SensorDetailBaseComponent extends Component {
             <div>
               <Form onSubmit={event => this.onEditSensor(event)}>
                 <Form.Field>
-                  <label>Nazwa sensora</label>
+                  <label>Name</label>
                   <input
                     name="sensorName"
                     type="text"

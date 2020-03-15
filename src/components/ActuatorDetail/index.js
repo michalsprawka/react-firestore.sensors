@@ -70,16 +70,62 @@ class ActuatorDetailBaseComponent extends Component {
       }
   
     }
+
+    onEditActuator = event => {
+      event.preventDefault();
+      console.log("STATE: ", this.state);
+    }
+    onChange = (event, result) => {
+      const { name, value } = result || event.target;
+      console.log("NAME", name);
+      console.log("Value", value);
+      this.setState({ [name]: value });
+    };
     render(){
+      const {
+        loading,
+        actuator,
+        actuatorName,
+        actuatorTypes,
+        actuatorTypeID,
+        resetCheck,
+         open,
+      } = this.state;
         return (
-            <h2> This is detail page </h2>
+            <div>
+              <Header as="h2">Actuator: {actuator.name}</Header>
+              <Divider horizontal section>
+                Edit actuator
+              </Divider>
+              <Grid centered columns={2}>
+                <Grid.Column>
+                  <div>
+                    <Form onSubmit={event => this.onEditActuator(event)}>
+                      <Form.Field>
+                        <label>Name</label>
+                        <input
+                          name="actuatorName"
+                          type="text"
+                          value={actuatorName}
+                          onChange={this.onChange}
+                        />
+                      </Form.Field>
+                      <Button primary type="submit">
+                        Submit
+                      </Button>
+                    </Form>
+
+                  </div>
+                </Grid.Column>
+              </Grid>
+            </div>
         )
     }
 
 
 }
 
-const SensorDetailPage = props => (
+const ActuatorDetailPage = props => (
     <AuthUserContext.Consumer>
       {authUser => <ActuatorDetailBaseComponent authUser={authUser} {...props} />}
     </AuthUserContext.Consumer>
@@ -89,5 +135,5 @@ const SensorDetailPage = props => (
   export default compose(
     withFirebase,
     withAuthorization(condition)
-  )(SensorDetailPage);
+  )(ActuatorDetailPage);
   
