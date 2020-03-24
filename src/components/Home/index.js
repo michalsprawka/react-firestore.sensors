@@ -35,7 +35,8 @@ class HomeBaseComponent extends Component {
     addSensorVisible: false,
     addSensorLoading: false,
     addActuatorVisible: false,
-    addActuatorLoading: false
+    addActuatorLoading: false,
+    MACAddress: ""
   };
 
   componentDidMount() {
@@ -155,7 +156,11 @@ class HomeBaseComponent extends Component {
       data: 0,
       readingDate: this.props.firebase.fieldValue.serverTimestamp(),
       name: this.state.sensorName,
-      type: this.state.sensorTypeID
+      type: this.state.sensorTypeID,
+      cameraTrigger: false,
+      programTrigger: false,
+      code: "",
+      MACAddress: this.state.MACAddress
     }).key;
     console.log("New key", newKey);
     console.log("CLICKED");
@@ -243,6 +248,13 @@ class HomeBaseComponent extends Component {
     this.setState({ addActuatorVisible: true });
   };
 
+  makePhoto = (uid) => {
+    console.log("UID:  ",uid);
+    this.props.firebase
+    .sensor(this.props.authUser.uid, uid)
+    .update({cameraTrigger: true});
+  }
+
   // onChangeSensorCheck = (event, {checked}) => {
   //   console.log("EVENT", checked);
   //  this.setState({sensorCheck: checked})
@@ -268,7 +280,8 @@ class HomeBaseComponent extends Component {
       addSensorVisible,
       addSensorLoading,
       addActuatorVisible,
-      addActuatorLoading
+      addActuatorLoading,
+      MACAddress
     } = this.state;
     // console.log("sensor type ID", sensorTypeID);
 
@@ -333,7 +346,10 @@ class HomeBaseComponent extends Component {
                     <Table.Row key={i}>
                       <Table.Cell>{sensor.uid}</Table.Cell>
                       <Table.Cell>{sensor.name}</Table.Cell>
+                      {sensor.type==="99GtB2mqawKEQAyHiFgH"? //sensor type camera
+                      <Table.Cell><a href={sensor.data}>Download Photo</a></Table.Cell>:
                       <Table.Cell>{sensor.data}</Table.Cell>
+                        }
                       <Table.Cell>
                         {sensor.readingDate &&
                           new Date(
@@ -342,6 +358,10 @@ class HomeBaseComponent extends Component {
                       </Table.Cell>
 
                       <Table.Cell>
+                        {sensor.type==="99GtB2mqawKEQAyHiFgH"? //sensortype camera
+                        <Button onClick={()=>this.makePhoto(sensor.uid)}>Make photo</Button>
+                        :null  
+                      }
                         <Button
                           primary
                           as={Link}
@@ -450,6 +470,16 @@ class HomeBaseComponent extends Component {
                           checked={sensorCheck }
 
                       /> */}
+                          <Form.Field>
+                            <label>MAC Address of endpoint</label>
+                            <input
+                              name="MACAddress"
+                              type="text"
+                              value={MACAddress}
+                              onChange={this.onChange}
+                              placeholder="MACAdress of your xbee endpoint"
+                            />
+                          </Form.Field>
                           <Button primary type="submit">
                             Submit
                           </Button>

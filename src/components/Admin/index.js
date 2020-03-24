@@ -44,7 +44,7 @@ class UserListBase extends Component {
       sensorName: "",
       sensorDescription: "",
       detailedSensorDescription: "",
-      code: "",
+     code: "",
       actuatorName: "",
       actuatorDescription: "",
       modalindex: 0
@@ -117,7 +117,8 @@ class UserListBase extends Component {
     event.preventDefault();
     this.props.firebase.sensorTypes().add({
       name: this.state.sensorName,
-      description: this.state.sensorDescription
+      description: this.state.sensorDescription,
+      code: this.state.code
     });
   };
 
@@ -131,7 +132,8 @@ class UserListBase extends Component {
     this.props.firebase.actuatorTypes().add({
       name: this.state.actuatorName,
       description: this.state.actuatorDescription,
-      modalindex: this.state.modalindex
+      modalindex: this.state.modalindex,
+      code: this.state.code
     });
   };
 

@@ -24,7 +24,9 @@ class SensorDetailBaseComponent extends Component {
       sensorName: "",
       sensorTypeID: "",
       resetCheck: true,
-      open: false
+      open: false,
+      newCode: "",
+      newMACAddress: ""
     };
   //}
 
@@ -37,6 +39,10 @@ class SensorDetailBaseComponent extends Component {
       this.setState({ sensorName });
       const sensorTypeID = this.state.sensor.type;
       this.setState({ sensorTypeID });
+      const newCode = this.state.sensor.code;
+      this.setState({ newCode });
+      const newMACAddress = this.state.sensor.MACAddress;
+      this.setState({newMACAddress})
 
      // return;
     }
@@ -54,6 +60,8 @@ class SensorDetailBaseComponent extends Component {
             this.setState({
               sensor: snapshot.data(),
               sensorName: snapshot.data().name,
+              newCode: snapshot.data().code,
+              newMACAddress: snapshot.data.MACAddress,
               loading: false
             })
           }
@@ -116,7 +124,8 @@ class SensorDetailBaseComponent extends Component {
       .update({
         name: this.state.sensorName,
         type: this.state.sensorTypeID,
-        data: this.state.resetCheck ? 0 : this.state.sensor.data
+        data: this.state.resetCheck ? 0 : this.state.sensor.data,
+        MACAddress: this.state.newMACAddress
       });
   };
 
@@ -145,6 +154,17 @@ class SensorDetailBaseComponent extends Component {
   open = () => {
     this.setState({open: true});
   }
+
+  onUpdateProgram = (event) => {
+    event.preventDefault();
+    console.log("In update program", this.state.newCode);
+    // this.props.firebase
+    //   .sensor(this.props.authUser.uid, this.state.sensor.uid)
+    //   .update({
+    //     code: this.state.newCode,
+    //     programTrigger:  true
+    //   });
+  }
   render() {
     const {
       sensor,
@@ -152,7 +172,9 @@ class SensorDetailBaseComponent extends Component {
       sensorTypes,
       sensorTypeID,
       resetCheck,
-      open
+      open,
+      newCode,
+      newMACAddress
     } = this.state;
     return (
       <div>
@@ -184,6 +206,16 @@ class SensorDetailBaseComponent extends Component {
                   onChange={this.onChange}
                   // placeholder="choose sensor type"
                 />
+                <Form.Field>
+                  <label>MACAdress</label>
+                  <input
+                    name="newMACAddress"
+                    type="text"
+                    value={newMACAddress}
+                    onChange={this.onChange}
+                    // placeholder="think about name of your sensor..."
+                  />
+                </Form.Field>
                 <Form.Checkbox
                   label="Reset reading data ?"
                   name="resetCheck"
@@ -204,7 +236,7 @@ class SensorDetailBaseComponent extends Component {
            closeOnDimmerClick={true}
             onClose={this.close} 
             trigger={<Button onClick={this.open} negative>Remove Sensor ?</Button>} basic size="small">
-              <Header icon="archive" content="Archive Old Messages" />
+              <Header icon="question" content="Remove ?" />
               <Modal.Content>
                 <p>
                   Would You like to remove sensor ?
@@ -219,6 +251,29 @@ class SensorDetailBaseComponent extends Component {
                 </Button>
               </Modal.Actions>
             </Modal>
+
+            <Divider horizontal section>
+              Update program
+            </Divider>
+            <div>
+              <Form onSubmit={event => this.onUpdateProgram(event)}>
+              <label>New Code</label>
+                <Form.TextArea
+                 
+                  
+                    name="newCode"
+                    //type="textarea"
+                    value={newCode}
+                    onChange={this.onChange}
+                    // placeholder="think about name of your sensor..."
+                  >
+                </Form.TextArea>
+               
+                <Button primary type="submit">
+                  Submit
+                </Button>
+              </Form>
+            </div>
           </Grid.Column>
         </Grid>
       </div>
