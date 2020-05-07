@@ -24,6 +24,7 @@ const AdminPage = () => (
 
     <Switch>
     <Route  exact path={ROUTES.ADMIN_SENSORTYPES_DETAILS}  component={SensorTypeItem} />
+    <Route  exact path={ROUTES.ADMIN_ACTUATORTYPES_DETAILS}  component={ActuatorTypeItem} />
       <Route exact path={ROUTES.ADMIN_USERS_DETAILS} component={UserItem} />
       
       <Route exact path={ROUTES.ADMIN} component={UserList} />
@@ -44,7 +45,9 @@ class UserListBase extends Component {
       sensorName: "",
       sensorDescription: "",
       detailedSensorDescription: "",
-     code: "",
+      detailedActuatorDescription: "",
+      sensorCode: "",
+      actuatorCode: "",
       actuatorName: "",
       actuatorDescription: "",
       modalindex: 0
@@ -102,13 +105,7 @@ class UserListBase extends Component {
    this.unsubscribeSensorTypes();
    this.unsubscribeActuatorTypes();
   }
-  // onChangeText1 = event => {
-  //   this.setState({ sensorName: event.target.value });
-  // };
-
-  // onChangeText2 = event => {
-  //   this.setState({ sensorDescription: event.target.value });
-  // };
+ 
   onChange = event => {
     this.setState({ [event.target.name]: event.target.value });
   };
@@ -118,6 +115,7 @@ class UserListBase extends Component {
     this.props.firebase.sensorTypes().add({
       name: this.state.sensorName,
       description: this.state.sensorDescription,
+      detailedDescription: this.state.detailedSensorDescription,
       code: this.state.code
     });
   };
@@ -144,15 +142,19 @@ class UserListBase extends Component {
       sensorName,
       sensorDescription,
       detailedSensorDescription,
-      code,
+      sensorCode,
+      actuatorCode,
       sensorTypes,
       actuatorName,
       actuatorDescription,
+      detailedActuatorDescription,
       actuatorTypes,
       modalindex
     } = this.state;
 
     return (
+
+      //Users table ********************************************************************
       <div>
         <Header as="h1" style={{color: "blue"}}>Users</Header>
         {loading ? (
@@ -190,12 +192,18 @@ class UserListBase extends Component {
             </Table.Body>
           </Table>
         )}
-        <Divider horizontal section>
+
+        {/* New User ***************************************************************************************** */}
+
+        <Divider horizontal section style={{ color: "red" }}>
           New User
         </Divider>
         <SignUpLink />
         <Header as="h1" style={{color: "blue"}}>Sensor Types</Header>
-        <Divider horizontal section>
+
+        {/* SensorTypes table ***************************************************************************************** */}
+
+        <Divider horizontal section style={{ color: "red" }}>
           SensorTypes
         </Divider>
         <Table fixed singleLine>
@@ -225,8 +233,8 @@ class UserListBase extends Component {
             ))}
           </Table.Body>
         </Table>
-
-        <Divider horizontal section>
+          {/* New Sensor type ***************************************************************************************** */}
+        <Divider horizontal section style={{ color: "red" }}>
           New Sensor Type
         </Divider>
         <Form onSubmit={event => this.onCreateSensorType(event)}>
@@ -258,11 +266,11 @@ class UserListBase extends Component {
             />
           </Form.Field>
           <Form.Field>
-            <label>Program</label>
+            <label>Proposed program</label>
             <textarea
-              name="code"
+              name="sensorCode"
               type="textarea"
-              value={code}
+              value={sensorCode}
               onChange={this.onChange}
             />
           </Form.Field>
@@ -270,9 +278,9 @@ class UserListBase extends Component {
             Submit
           </Button>
         </Form>
-        
+        {/* Actuator Types table ***************************************************************************************** */}
         <Header as="h1" style={{color: "blue"}}>Actuator Types</Header>
-        <Divider horizontal section>
+        <Divider horizontal section style={{ color: "red" }}>
           ActuatorTypes
         </Divider>
         <Table fixed singleLine>
@@ -294,7 +302,10 @@ class UserListBase extends Component {
                 <Table.Cell>{type.modalindex}</Table.Cell>
 
                 <Table.Cell>
-                  <Button primary as={Link} to={{}}>
+                  <Button primary as={Link} to={{
+                     pathname: `${ROUTES.ADMIN_ACTUATORTYPES}/${type.uid}`,
+                     state: { type }
+                  }}>
                     Details
                   </Button>
                 </Table.Cell>
@@ -302,8 +313,8 @@ class UserListBase extends Component {
             ))}
           </Table.Body>
         </Table>
-
-        <Divider horizontal section>
+              {/* New Actuator Type ***************************************************************************************** */}
+        <Divider horizontal section style={{ color: "red" }}>
           New Actuator Type
         </Divider>
         <Form onSubmit={this.onCreateActuatorType}>
@@ -331,6 +342,24 @@ class UserListBase extends Component {
               name="actuatorDescription"
               type="textarea"
               value={actuatorDescription}
+              onChange={this.onChange}
+            />
+          </Form.Field>
+          <Form.Field>
+            <label>Detailed description</label>
+            <textarea
+              name="detailedActuatorDescription"
+              type="textarea"
+              value={detailedActuatorDescription}
+              onChange={this.onChange}
+            />
+          </Form.Field>
+          <Form.Field>
+            <label>Proposed program</label>
+            <textarea
+              name="actuatorCode"
+              type="textarea"
+              value={actuatorCode}
               onChange={this.onChange}
             />
           </Form.Field>
@@ -419,6 +448,9 @@ class UserItemBase extends Component {
     );
   }
 }
+
+
+
 class SensorTypeItemBase extends Component {
   constructor(props) {
     super(props);
@@ -426,81 +458,240 @@ class SensorTypeItemBase extends Component {
     this.state = {
       loading: false,
       type: null,
-      ...props.location.state
+      ...props.location.state,
+      editedName: "",
+      editedDescription: "",
+      editedDetailedDescription: "",
+      editedCode: ""
     };
   }
 
   componentDidMount() {
-    // if (this.state.user) {
-    //   console.log("State user: ", this.state.user);
-    //   return;
-    console.log("jestem",this.state)
+
+    console.log("State: ", this.state);
+
+    const editedName = this.state.type.name;
+    editedName ? this.setState({ editedName }):  this.setState({editedName: ""});
+
+    const editedDescription = this.state.type.description;
+    editedDescription ? this.setState({ editedDescription }):  this.setState({editedDescription: ""});
+
+    const editedDetailedDescription = this.state.type.detailedDescription;
+    editedDetailedDescription ? this.setState({ editedDetailedDescription }):  this.setState({editedDetailedDescription: ""});
+
+    const editedCode = this.state.type.code;
+    editedCode ? this.setState({ editedCode }):  this.setState({editedCode: ""});
+
     }
 
-  //   this.setState({ loading: true });
+ onEditSensor = event => {
 
-  //   this.props.firebase
-  //     .user(this.props.match.params.id)
-  //     .on("value", snapshot => {
-  //       this.setState({
-  //         user: snapshot.val(),
-  //         loading: false
-  //       });
-  //     });
-  // }
+ }
 
-  // componentWillUnmount() {
-  //   this.props.firebase.user(this.props.match.params.id).off();
-  // //  this.props.firebase.user().off();
-  // }
-
-  // onSendPasswordResetEmail = () => {
-  //   this.props.firebase.doPasswordReset(this.state.user.email);
-  // };
+ onChange = (event, result) => {
+  const { name, value } = result || event.target;
+  console.log("NAME", name);
+  console.log("Value", value);
+  this.setState({ [name]: value });
+};
 
   render() {
-    const {  loading } = this.state;
+    const {  loading,editedName,editedDescription,editedDetailedDescription,editedCode, type } = this.state;
    
 
     return (
-      <>
-         <h2>Sensor types</h2>
-        <Card fluid={true}>
-          {loading ? (
-            <Loader active inline="centered" />
-          ) : (
-            <Card.Content>
-              <Card.Header>Sensor Type: {this.state.type.uid} </Card.Header>
-              <Card.Description>
-                {/* {user && (
-                  <div>
-                    <Card.Content>
-                      <Card.Meta>
-                        <span>Username: {user.username}</span>
-                      </Card.Meta>
-                      <Card.Description>{user.email}</Card.Description>
-                      <br />
-                      <Button
-                        primary
-                        type="button"
-                        onClick={this.onSendPasswordResetEmail}
-                      >
-                        Send Password Reset
-                      </Button>
-                    </Card.Content>
-                  </div>
-                )} */}
-              </Card.Description>
-            </Card.Content>
-          )}
-        </Card>
-      </>
+      <div>
+        <Header as="h2"> Sensor Type: {type.name}</Header>
+
+        <Divider horizontal section style={{ color: "red" }}>
+          Edit sensor Type
+        </Divider>
+       
+            <div>
+              <Form onSubmit={event => this.onEditSensor(event)}>
+                <Form.Field>
+                  <label>Name</label>
+                  <input
+                    name="editedName"
+                    type="text"
+                    value={editedName}
+                    onChange={this.onChange}
+                    // placeholder="think about name of your sensor..."
+                  />
+                </Form.Field>
+              
+                
+                <Form.Field>
+                  <label>Description</label>
+                  <input
+                    name="editedDescription"
+                    type="text"
+                    value={editedDescription}
+                    onChange={this.onChange}
+                    // placeholder="think about name of your sensor..."
+                  />
+                </Form.Field>
+                <Form.Field>
+                <label>Detailed description</label>
+                <Form.TextArea
+                    name="editedDetailedDescription"
+                    value={editedDetailedDescription}
+                    onChange={this.onChange}
+                />
+
+                </Form.Field>
+                
+                <Form.Field>
+                <label>Proposed code</label>
+                <Form.TextArea
+                    name="editedCode"
+                    value={editedCode}
+                    onChange={this.onChange}
+                />
+                </Form.Field>
+                  
+              
+               
+                <Button primary type="submit" >
+                  Submit
+                </Button>
+              </Form>
+              </div>
+              </div>
+    );
+  }
+}
+
+
+class ActuatorTypeItemBase extends Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      loading: false,
+      type: null,
+      ...props.location.state,
+      editedName: "",
+      editedDescription: "",
+      editedModalIndex: -1,
+      editedDetailedDescription: "",
+      editedCode: ""
+    };
+  }
+
+  componentDidMount() {
+
+    console.log("State: ", this.state);
+
+    const editedName = this.state.type.name;
+    editedName ? this.setState({ editedName }):  this.setState({editedName: ""});
+
+    const editedDescription = this.state.type.description;
+    editedDescription ? this.setState({ editedDescription }):  this.setState({editedDescription: ""});
+
+    const editedDetailedDescription = this.state.type.detailedDescription;
+    editedDetailedDescription ? this.setState({ editedDetailedDescription }):  this.setState({editedDetailedDescription: ""});
+
+    const editedCode = this.state.type.code;
+    editedCode ? this.setState({ editedCode }):  this.setState({editedCode: ""});
+
+    const editedModalIndex = this.state.type.modalindex;
+    editedModalIndex || editedModalIndex === 0 ? this.setState({ editedModalIndex }):  this.setState({editedModalIndex: -1});
+
+    }
+
+ onEditSensor = event => {
+
+ }
+
+ onChange = (event, result) => {
+  const { name, value } = result || event.target;
+  console.log("NAME", name);
+  console.log("Value", value);
+  this.setState({ [name]: value });
+};
+
+  render() {
+    const {  loading,editedName,editedDescription,editedDetailedDescription,editedCode, editedModalIndex, type } = this.state;
+   
+
+    return (
+      <div>
+        <Header as="h2"> Actuator Type: {type.name}</Header>
+
+        <Divider horizontal section style={{ color: "red" }}>
+          Edit Actuator Type
+        </Divider>
+       
+            <div>
+              <Form onSubmit={event => this.onEditSensor(event)}>
+                <Form.Field>
+                  <label>Name</label>
+                  <input
+                    name="editedName"
+                    type="text"
+                    value={editedName}
+                    onChange={this.onChange}
+                    // placeholder="think about name of your sensor..."
+                  />
+                </Form.Field>
+              
+                
+                <Form.Field>
+                  <label>Description</label>
+                  <input
+                    name="editedDescription"
+                    type="text"
+                    value={editedDescription}
+                    onChange={this.onChange}
+                    // placeholder="think about name of your sensor..."
+                  />
+                </Form.Field>
+
+                <Form.Field>
+                  <label>Modal Index</label>
+                  <input
+                    name="editedModalIndex"
+                    type="number"
+                    value={editedModalIndex}
+                    onChange={this.onChange}
+                    // placeholder="think about name of your sensor..."
+                  />
+                </Form.Field>
+
+                <Form.Field>
+                <label>Detailed description</label>
+                <Form.TextArea
+                    name="editedDetailedDescription"
+                    value={editedDetailedDescription}
+                    onChange={this.onChange}
+                />
+
+                </Form.Field>
+                
+                <Form.Field>
+                <label>Proposed code</label>
+                <Form.TextArea
+                    name="editedCode"
+                    value={editedCode}
+                    onChange={this.onChange}
+                />
+                </Form.Field>
+              
+               
+                <Button primary type="submit" >
+                  Submit
+                </Button>
+              </Form>
+              </div>
+              </div>
     );
   }
 }
 const UserList = withFirebase(UserListBase);
 const UserItem = withFirebase(UserItemBase);
 const SensorTypeItem = withFirebase(SensorTypeItemBase);
+const ActuatorTypeItem = withFirebase(ActuatorTypeItemBase);
 
 const condition = authUser =>
   // authUser && authUser.roles.includes(ROLES.ADMIN);

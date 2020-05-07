@@ -21,27 +21,34 @@ import * as ROUTES from "../../constants/routes";
 
 class HomeBaseComponent extends Component {
   state = {
-    loading: false,
+
     sensors: [],
     sensorTypes: [],
     actuatorTypes: [],
     actuators: [],
+    // for editing
     sensorName: "",
     sensorTypeID: "",
     sensorCheck: false,
     actuatorName: "",
     actuatorTypeID: "",
+    sensorMACAddress: "",
+    actuatorMACAddress: "",
+    //for display
+    loading: false,
     open: false,
     addSensorVisible: false,
     addSensorLoading: false,
     addActuatorVisible: false,
     addActuatorLoading: false,
-    MACAddress: ""
+    rpiReady: false
+
   };
 
   componentDidMount() {
     this.onListenSensors();
     this.onListenActuators();
+    this.onListenUser();
   }
 
   componentWillUnmount() {
@@ -49,7 +56,21 @@ class HomeBaseComponent extends Component {
     this.unsubscribeActuators();
     this.unsubscribeSensorTypes && this.unsubscribeSensorTypes();
     this.unsubscribeActuatorTypes && this.unsubscribeActuatorTypes();
+    this.unsubscribeUser();
   }
+
+  // Listeners ***************************************************************************************
+
+
+  onListenUser = () => {
+    this.setState({ loading: true });
+    this.unsubscribeUser = this.props.firebase
+      .user(this.props.authUser.uid)
+      .onSnapshot(snapshot => {
+        this.setState({rpiReady: snapshot.data().rpiReady})
+      })
+  }
+
 
   onListenSensors = () => {
     this.setState({ loading: true });
@@ -61,7 +82,7 @@ class HomeBaseComponent extends Component {
           snapshot.forEach(doc =>
             sensorsList.push({ ...doc.data(), uid: doc.id })
           );
-          console.log("sensorsList:  ", sensorsList);
+          //console.log("sensorsList:  ", sensorsList);
           // console.log("DATE:  ", new Date(sensorsList[0].readingDate.toDate()).toLocaleString());
           this.setState({
             sensors: sensorsList,
@@ -83,7 +104,7 @@ class HomeBaseComponent extends Component {
           snapshot.forEach(doc =>
             actuatorsList.push({ ...doc.data(), uid: doc.id, openModal: false })
           );
-          console.log("actuatorsList:  ", actuatorsList);
+          //console.log("actuatorsList:  ", actuatorsList);
           this.setState({
             actuators: actuatorsList,
             loading: false
@@ -93,6 +114,7 @@ class HomeBaseComponent extends Component {
         }
       });
   };
+
   onListenSensorTypes = () => {
     this.setState({ addSensorLoading: true });
     this.unsubscribeSensorTypes = this.props.firebase
@@ -110,7 +132,7 @@ class HomeBaseComponent extends Component {
               value: doc.id
             })
           );
-          console.log("sensorTypesList:  ", sensorTypesList);
+          //   console.log("sensorTypesList:  ", sensorTypesList);
           this.setState({
             sensorTypes: sensorTypesList,
             addSensorLoading: false
@@ -120,7 +142,7 @@ class HomeBaseComponent extends Component {
         }
       });
   };
-  //TU JESTEM FIRESTORE
+
 
   onListenActuatorTypes = () => {
     this.setState({ addActuatorLoading: true });
@@ -139,7 +161,7 @@ class HomeBaseComponent extends Component {
               value: doc.id
             })
           );
-          console.log("actuatorTypesList:  ", actuatorTypesList);
+          //   console.log("actuatorTypesList:  ", actuatorTypesList);
           this.setState({
             actuatorTypes: actuatorTypesList,
             addActuatorLoading: false
@@ -150,9 +172,12 @@ class HomeBaseComponent extends Component {
       });
   };
 
+
+  // Adders ***************************************************************************************
+
   onAddSensor = event => {
     event.preventDefault();
-    const newKey = this.props.firebase.sensors(this.props.authUser.uid).add({
+    this.props.firebase.sensors(this.props.authUser.uid).add({
       data: 0,
       readingDate: this.props.firebase.fieldValue.serverTimestamp(),
       name: this.state.sensorName,
@@ -160,10 +185,10 @@ class HomeBaseComponent extends Component {
       cameraTrigger: false,
       programTrigger: false,
       code: "",
-      MACAddress: this.state.MACAddress
-    }).key;
-    console.log("New key", newKey);
-    console.log("CLICKED");
+      MACAddress: this.state.sensorMACAddress
+    });
+    // console.log("New key", newKey);
+    //console.log("CLICKED");
   };
 
   onAddActuator = event => {
@@ -176,56 +201,23 @@ class HomeBaseComponent extends Component {
       changingDate: this.props.firebase.fieldValue.serverTimestamp(),
       name: this.state.actuatorName,
       type: this.state.actuatorTypeID,
-      typeModalIndex: actuatorTypeModalindex
+      typeModalIndex: actuatorTypeModalindex,
+      programTrigger: false,
+      code: "",
+      MACAddress: this.state.actuatorMACAddress
     });
-    console.log(
-      "NEW ACTUATORS: ",
-      this.state.actuatorName,
-      this.state.actuatorTypeID
-    );
-    console.log("find modalindex", actuatorTypeModalindex);
-    console.log("actuatortypes:", this.state.actuatorTypes);
-    console.log("CLICKED");
+
   };
 
-  // onCreateSensor = event => {
-  //   event.preventDefault();
-  //   console.log("Clicked", this.state.sensorName);
-  // };
-
-  // onChangeText = event => {
-  //   this.setState({ sensorName: event.target.value });
-  // };
-
-  // onChangeSensorType = (event, {value}) => {
-  //   console.log("EVENT", value);
-  //  this.setState({sensorTypeID: value})
-  // }
-
-  onChange = (event, result) => {
-    const { name, value } = result || event.target;
-    console.log("NAME", name);
-    console.log("Value", value);
-    this.setState({ [name]: value });
-  };
-
-  close = index => {
-    const actuatorsArray = [...this.state.actuators];
-    console.log("index", index);
-    actuatorsArray[index].openModal = false;
-
-    this.setState({ actuators: actuatorsArray });
-  };
-
-  open = index => {
-    const actuatorsArray = [...this.state.actuators];
-    console.log("actuatorsArray", actuatorsArray);
-    actuatorsArray[index].openModal = true;
-    this.setState({ actuators: actuatorsArray });
-  };
+  makePhoto = (uid) => {
+    // console.log("UID:  ", uid);
+    this.props.firebase
+      .sensor(this.props.authUser.uid, uid)
+      .update({ cameraTrigger: true });
+  }
 
   toggleState = (uid, state) => {
-    console.log("modal uid: ", uid, "state: ", state);
+    //  console.log("modal uid: ", uid, "state: ", state);
     if (state === 0) {
       this.props.firebase
         .actuator(this.props.authUser.uid, uid)
@@ -238,8 +230,36 @@ class HomeBaseComponent extends Component {
     this.setState({ open: false });
   };
 
+
+  //Others ***********************************************************************************
+
+
+  onChange = (event, result) => {
+    const { name, value } = result || event.target;
+    // console.log("NAME", name);
+    // console.log("Value", value);
+    this.setState({ [name]: value });
+  };
+
+  close = index => {
+    const actuatorsArray = [...this.state.actuators];
+    // console.log("index", index);
+    actuatorsArray[index].openModal = false;
+
+    this.setState({ actuators: actuatorsArray });
+  };
+
+  open = index => {
+    const actuatorsArray = [...this.state.actuators];
+    //  console.log("actuatorsArray", actuatorsArray);
+    actuatorsArray[index].openModal = true;
+    this.setState({ actuators: actuatorsArray });
+  };
+
+
+
   onAddSensorVisible = () => {
-    console.log("listen sens types call");
+    // console.log("listen sens types call");
     this.onListenSensorTypes();
     this.setState({ addSensorVisible: true });
   };
@@ -248,23 +268,7 @@ class HomeBaseComponent extends Component {
     this.setState({ addActuatorVisible: true });
   };
 
-  makePhoto = (uid) => {
-    console.log("UID:  ",uid);
-    this.props.firebase
-    .sensor(this.props.authUser.uid, uid)
-    .update({cameraTrigger: true});
-  }
 
-  // onChangeSensorCheck = (event, {checked}) => {
-  //   console.log("EVENT", checked);
-  //  this.setState({sensorCheck: checked})
-  // }
-
-  // onTest = uid => {
-  //   console.log("UID", uid);
-  //   this.props.firebase.user(uid).update({ isAdmin: true });
-  //   //this.props.firebase.sensor(uid,"-LzWWsU5VSAjKdRagP6w").update( {data : 2} );
-  // };
 
   render() {
     const {
@@ -281,9 +285,16 @@ class HomeBaseComponent extends Component {
       addSensorLoading,
       addActuatorVisible,
       addActuatorLoading,
-      MACAddress
+      sensorMACAddress,
+      actuatorMACAddress,
+      rpiReady
     } = this.state;
     // console.log("sensor type ID", sensorTypeID);
+
+    const isInvalidAddSensor = sensorName.length < 3 ||
+         sensorTypeID === "";
+    const isInvalidAddActuator = actuatorName < 3 ||
+         actuatorTypeID === "";
 
     const getModal = (index, state, uid, i, openModal) => {
       const ModalArray = [
@@ -322,229 +333,248 @@ class HomeBaseComponent extends Component {
       <div style={{ margin: "30px" }}>
         <Header as="h2" textAlign="center">
           Home Page You are logged as {this.props.authUser.username}
+          </Header>
+          <Header as="h4" textAlign="center">
+          {rpiReady ?  <p>Your Rpi hub is connected :)</p>: 
+          <p>Your Rpi hub is not connected. Connect your Rpi hub.</p>}
         </Header>
         {loading ? (
           <Loader active inline />
         ) : (
-          <>
-            <Divider horizontal section>
-              Your sensors
+            <>
+
+              {/* Sensor list ********************************************************** */}
+
+              <Divider horizontal section style={{ color: "red" }}>
+                Your sensors
             </Divider>
-            <Table singleLine>
-              <Table.Header>
-                <Table.Row>
-                  <Table.HeaderCell>ID</Table.HeaderCell>
-                  <Table.HeaderCell>name</Table.HeaderCell>
-                  <Table.HeaderCell>data</Table.HeaderCell>
-                  <Table.HeaderCell>date of read</Table.HeaderCell>
-                  <Table.HeaderCell>Actions</Table.HeaderCell>
-                </Table.Row>
-              </Table.Header>
-              <Table.Body>
-                {sensors &&
-                  sensors.map((sensor, i) => (
-                    <Table.Row key={i}>
-                      <Table.Cell>{sensor.uid}</Table.Cell>
-                      <Table.Cell>{sensor.name}</Table.Cell>
-                      {sensor.type==="99GtB2mqawKEQAyHiFgH"? //sensor type camera
-                      <Table.Cell><a href={sensor.data}>Download Photo</a></Table.Cell>:
-                      <Table.Cell>{sensor.data}</Table.Cell>
+              <Table singleLine>
+                <Table.Header>
+                  <Table.Row>
+                    <Table.HeaderCell>ID</Table.HeaderCell>
+                    <Table.HeaderCell>name</Table.HeaderCell>
+                    <Table.HeaderCell>data</Table.HeaderCell>
+                    <Table.HeaderCell>date of read</Table.HeaderCell>
+                    <Table.HeaderCell>Actions</Table.HeaderCell>
+                  </Table.Row>
+                </Table.Header>
+                <Table.Body>
+                  {sensors &&
+                    sensors.map((sensor, i) => (
+                      <Table.Row key={i}>
+                        <Table.Cell>{sensor.uid}</Table.Cell>
+                        <Table.Cell>{sensor.name}</Table.Cell>
+                        {sensor.type === "99GtB2mqawKEQAyHiFgH" ? //sensor type camera
+                          <Table.Cell><a href={sensor.data}>Download Photo</a></Table.Cell> :
+                          <Table.Cell>{sensor.data}</Table.Cell>
                         }
-                      <Table.Cell>
-                        {sensor.readingDate &&
-                          new Date(
-                            sensor.readingDate.toDate()
-                          ).toLocaleString()}
-                      </Table.Cell>
+                        <Table.Cell>
+                          {sensor.readingDate &&
+                            new Date(
+                              sensor.readingDate.toDate()
+                            ).toLocaleString()}
+                        </Table.Cell>
 
-                      <Table.Cell>
-                        {sensor.type==="99GtB2mqawKEQAyHiFgH"? //sensortype camera
-                        <Button onClick={()=>this.makePhoto(sensor.uid)}>Make photo</Button>
-                        :null  
-                      }
-                        <Button
-                          primary
-                          as={Link}
-                          to={{
-                            pathname: `${ROUTES.SENSOR_DETAILS}/${sensor.uid}`,
-                            state: { sensor, sensorTypes }
-                          }}
-                        >
-                          Detail
+                        <Table.Cell>
+                          {sensor.type === "99GtB2mqawKEQAyHiFgH" ? //sensortype camera
+                            <Button onClick={() => this.makePhoto(sensor.uid)}>Make photo</Button>
+                            : null
+                          }
+                          <Button
+                            primary
+                            as={Link}
+                            to={{
+                              pathname: `${ROUTES.SENSOR_DETAILS}/${sensor.uid}`,
+                              state: { sensor, sensorTypes }
+                            }}
+                          >
+                            Detail
                         </Button>
-                      </Table.Cell>
-                    </Table.Row>
-                  ))}
-              </Table.Body>
-            </Table>
+                        </Table.Cell>
+                      </Table.Row>
+                    ))}
+                </Table.Body>
+              </Table>
 
-            <Divider horizontal section>
-              Your actuators
+              {/* Actuators list ********************************************************** */}
+
+              <Divider horizontal section style={{ color: "red" }}>
+                Your actuators
             </Divider>
-            <Table singleLine>
-              <Table.Header>
-                <Table.Row>
-                  <Table.HeaderCell>ID</Table.HeaderCell>
-                  <Table.HeaderCell>name</Table.HeaderCell>
-                  <Table.HeaderCell>Current state</Table.HeaderCell>
-                  <Table.HeaderCell>date of changing</Table.HeaderCell>
-                  <Table.HeaderCell>Actions</Table.HeaderCell>
-                </Table.Row>
-              </Table.Header>
-              <Table.Body>
-                {actuators &&
-                  actuators.map((actuator, i) => (
-                    <Table.Row key={i}>
-                      <Table.Cell>{actuator.uid}</Table.Cell>
-                      <Table.Cell>{actuator.name}</Table.Cell>
-                      <Table.Cell>{actuator.state}</Table.Cell>
-                      <Table.Cell>
-                        {actuator.changingDate &&
-                          new Date(
-                            actuator.changingDate.toDate()
-                          ).toLocaleString()}
-                      </Table.Cell>
+              <Table singleLine>
+                <Table.Header>
+                  <Table.Row>
+                    <Table.HeaderCell>ID</Table.HeaderCell>
+                    <Table.HeaderCell>name</Table.HeaderCell>
+                    <Table.HeaderCell>Current state</Table.HeaderCell>
+                    <Table.HeaderCell>date of changing</Table.HeaderCell>
+                    <Table.HeaderCell>Actions</Table.HeaderCell>
+                  </Table.Row>
+                </Table.Header>
+                <Table.Body>
+                  {actuators &&
+                    actuators.map((actuator, i) => (
+                      <Table.Row key={i}>
+                        <Table.Cell>{actuator.uid}</Table.Cell>
+                        <Table.Cell>{actuator.name}</Table.Cell>
+                        <Table.Cell>{actuator.state}</Table.Cell>
+                        <Table.Cell>
+                          {actuator.changingDate &&
+                            new Date(
+                              actuator.changingDate.toDate()
+                            ).toLocaleString()}
+                        </Table.Cell>
 
-                      <Table.Cell>
-                       
-                        {getModal(
-                          parseInt(actuator.typeModalIndex),
-                          actuator.state,
-                          actuator.uid,
-                          i,
-                          actuator.openModal
+                        <Table.Cell>
+
+                          {getModal(
+                            parseInt(actuator.typeModalIndex),
+                            actuator.state,
+                            actuator.uid,
+                            i,
+                            actuator.openModal
+                          )}
+
+                          <Button primary as={Link} to={{
+                            pathname: `${ROUTES.ACTUATOR_DETAILS}/${actuator.uid}`,
+                            state: { actuator, actuatorTypes }
+                          }}>
+                            Detail
+                        </Button>
+                        </Table.Cell>
+                      </Table.Row>
+                    ))}
+                </Table.Body>
+              </Table>
+
+
+              {/* New sensor ********************************************************** */}
+
+              <Divider horizontal section style={{ color: "red" }}>
+                Add new sensor
+            </Divider>
+
+              <Grid centered columns={2}>
+                <Grid.Column>
+                  {addSensorLoading ? (
+                    <Loader active inline />
+                  ) : (
+                      <>
+                        {!addSensorVisible && (
+                          <Button primary onClick={this.onAddSensorVisible}>
+                            Add Sensor
+                      </Button>
                         )}
-
-                        <Button primary as={Link} to={{
-                          pathname: `${ROUTES.ACTUATOR_DETAILS}/${actuator.uid}`,
-                          state: { actuator, actuatorTypes }
-                        }}>
-                          Detail
-                        </Button>
-                      </Table.Cell>
-                    </Table.Row>
-                  ))}
-              </Table.Body>
-            </Table>
-
-            <Divider horizontal section>
-              Add new sensor
-            </Divider>
-
-            <Grid centered columns={2}>
-              <Grid.Column>
-                {addSensorLoading ? (
-                  <Loader active inline />
-                ) : (
-                  <>
-                    {!addSensorVisible && (
-                      <Button primary onClick={this.onAddSensorVisible}>
-                        Add Sensor
-                      </Button>
-                    )}
-                    <div>
-                      {addSensorVisible && (
-                        <Form onSubmit={event => this.onAddSensor(event)}>
-                          <Form.Field>
-                            <label>Sensor`s name</label>
-                            <input
-                              name="sensorName"
-                              type="text"
-                              value={sensorName}
-                              onChange={this.onChange}
-                              placeholder="think about name of your sensor..."
-                            />
-                          </Form.Field>
-                          <Form.Select
-                            fluid
-                            label="Type"
-                            name="sensorTypeID"
-                            options={sensorTypes}
-                            value={sensorTypeID}
-                            onChange={this.onChange}
-                            placeholder="choose sensor type"
-                          />
-                          {/* <Form.Checkbox label='I agree to the Terms and Conditions' 
+                        <div>
+                          {addSensorVisible && (
+                            <Form onSubmit={event => this.onAddSensor(event)}>
+                              <Form.Field>
+                                <label>Sensor`s name</label>
+                                <input
+                                  name="sensorName"
+                                  type="text"
+                                  value={sensorName}
+                                  onChange={this.onChange}
+                                  placeholder="think about name of your sensor..."
+                                />
+                              </Form.Field>
+                              <Form.Select
+                                fluid
+                                label="Type"
+                                name="sensorTypeID"
+                                options={sensorTypes}
+                                value={sensorTypeID}
+                                onChange={this.onChange}
+                                placeholder="choose sensor type"
+                              />
+                              {/* <Form.Checkbox label='I agree to the Terms and Conditions' 
                           onChange={this.onChangeSensorCheck}
                           //value={sensorCheck}
                           checked={sensorCheck }
 
                       /> */}
-                          <Form.Field>
-                            <label>MAC Address of endpoint</label>
-                            <input
-                              name="MACAddress"
-                              type="text"
-                              value={MACAddress}
-                              onChange={this.onChange}
-                              placeholder="MACAdress of your xbee endpoint"
-                            />
-                          </Form.Field>
-                          <Button primary type="submit">
-                            Submit
+                              <Form.Field>
+                                <label>MAC Address of endpoint</label>
+                                <input
+                                  name="sensorMACAddress"
+                                  type="text"
+                                  value={sensorMACAddress}
+                                  onChange={this.onChange}
+                                  placeholder="MACAdress of your xbee endpoint"
+                                />
+                              </Form.Field>
+                              <Button primary type="submit" disabled={isInvalidAddSensor}>
+                                Submit
                           </Button>
-                        </Form>
-                      )}
-                    </div>
-                  </>
-                )}
-              </Grid.Column>
-            </Grid>
-
-            <Divider horizontal section>
-              Add new actuator
-            </Divider>
-            <Grid centered columns={2}>
-              <Grid.Column>
-                {addActuatorLoading ? (
-                  <Loader active inline />
-                ) : (
-                  <>
-                    {!addActuatorVisible && (
-                      <Button primary onClick={this.onAddActuatorVisible}>
-                        Add Actuator
-                      </Button>
+                            </Form>
+                          )}
+                        </div>
+                      </>
                     )}
-                    <div>
-                      {addActuatorVisible && (
-                        <Form onSubmit={event => this.onAddActuator(event)}>
-                          <Form.Field>
-                            <label>Actuator`s name</label>
-                            <input
-                              name="actuatorName"
-                              type="text"
-                              value={actuatorName}
-                              onChange={this.onChange}
-                              placeholder="think about name of your actuator.."
-                            />
-                          </Form.Field>
-                          <Form.Select
-                            fluid
-                            label="Type"
-                            name="actuatorTypeID"
-                            options={actuatorTypes}
-                            value={actuatorTypeID}
-                            onChange={this.onChange}
-                            placeholder="choose actuator type"
-                          />
-                          {/* <Form.Checkbox label='I agree to the Terms and Conditions' 
-                          onChange={this.onChangeSensorCheck}
-                          //value={sensorCheck}
-                          checked={sensorCheck }
+                </Grid.Column>
+              </Grid>
 
-                      /> */}
-                          <Button primary type="submit">
-                            Submit
+              {/* New actuator ********************************************************** */}
+
+              <Divider horizontal section style={{ color: "red" }}>
+                Add new actuator
+            </Divider>
+              <Grid centered columns={2}>
+                <Grid.Column>
+                  {addActuatorLoading ? (
+                    <Loader active inline />
+                  ) : (
+                      <>
+                        {!addActuatorVisible && (
+                          <Button primary onClick={this.onAddActuatorVisible}>
+                            Add Actuator
+                      </Button>
+                        )}
+                        <div>
+                          {addActuatorVisible && (
+                            <Form onSubmit={event => this.onAddActuator(event)}>
+                              <Form.Field>
+                                <label>Actuator`s name</label>
+                                <input
+                                  name="actuatorName"
+                                  type="text"
+                                  value={actuatorName}
+                                  onChange={this.onChange}
+                                  placeholder="think about name of your actuator.."
+                                />
+                              </Form.Field>
+                              <Form.Select
+                                fluid
+                                label="Type"
+                                name="actuatorTypeID"
+                                options={actuatorTypes}
+                                value={actuatorTypeID}
+                                onChange={this.onChange}
+                                placeholder="choose actuator type"
+                              />
+
+                              <Form.Field>
+                                <label>MAC Address of endpoint</label>
+                                <input
+                                  name="actuatorMACAddress"
+                                  type="text"
+                                  value={actuatorMACAddress}
+                                  onChange={this.onChange}
+                                  placeholder="MACAdress of your xbee endpoint"
+                                />
+                              </Form.Field>
+                              <Button primary type="submit" disabled={isInvalidAddActuator}>
+                                Submit
                           </Button>
-                        </Form>
-                      )}
-                    </div>
-                  </>
-                )}
-              </Grid.Column>
-            </Grid>
-          </>
-        )}
+                            </Form>
+                          )}
+                        </div>
+                      </>
+                    )}
+                </Grid.Column>
+              </Grid>
+            </>
+          )}
       </div>
     );
   }
@@ -556,5 +586,7 @@ const HomePage = props => (
 );
 
 const condition = authUser => !!authUser;
+
+//const condition = genek => !!genek;
 
 export default compose(withFirebase, withAuthorization(condition))(HomePage);

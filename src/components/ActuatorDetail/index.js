@@ -15,7 +15,9 @@ class ActuatorDetailBaseComponent extends Component {
     actuatorTypeID: "",
     actuatorTypeModalIndex: 0,
     resetCheck: true,
-    open: false
+    open: false,
+    newCode: "",
+    newMACAddress: ""
   };
 
   componentDidMount() {
@@ -29,6 +31,10 @@ class ActuatorDetailBaseComponent extends Component {
       this.setState({ actuatorTypeID });
       const actuatorTypeModalIndex = this.state.actuator.typeModalIndex;
       this.setState({ actuatorTypeModalIndex });
+      const newCode = this.state.actuator.code;
+      newCode ? this.setState({ newCode }):  this.setState({newCode: ""});
+      const newMACAddress = this.state.sensor.MACAddress;
+      newMACAddress ? this.setState({newMACAddress}): this.setState({newMACAddress: ""});
     }
 
     if (!this.state.actuator) {
@@ -41,7 +47,9 @@ class ActuatorDetailBaseComponent extends Component {
             this.setState({
               actuator: snapshot.data(),
               actuatorName: snapshot.data().name,
-              loading: false
+              loading: false,
+              newCode: snapshot.data().code,
+              newMACAddress: snapshot.data.MACAddress,
               //potrzebne dodanie type i modal index
             })
           }
@@ -84,7 +92,8 @@ class ActuatorDetailBaseComponent extends Component {
     .update({
       name: this.state.actuatorName,
       type: this.state.actuatorTypeID,
-      typeModalIndex: this.state.actuatorTypeModalIndex
+      typeModalIndex: this.state.actuatorTypeModalIndex,
+      MACAddress: this.state.newMACAddress
     });
   }
 
@@ -97,9 +106,9 @@ class ActuatorDetailBaseComponent extends Component {
 
   onRemoveActuator = () => {
     console.log("Remove");
-    //  this.props.firebase
-    //  .actuator(this.props.authUser.uid, this.state.actuator.uid)
-    //  .delete();
+     this.props.firebase
+     .actuator(this.props.authUser.uid, this.state.actuator.uid)
+     .delete();
      this.props.history.push(ROUTES.HOME)
    }
 
@@ -111,6 +120,17 @@ class ActuatorDetailBaseComponent extends Component {
     this.setState({ open: true });
   }
 
+  onUpdateProgram = (event) => {
+    event.preventDefault();
+    console.log("In update program", this.state.newCode);
+    // this.props.firebase
+    //   .sensor(this.props.authUser.uid, this.state.sensor.uid)
+    //   .update({
+    //     code: this.state.newCode,
+    //     programTrigger:  true
+    //   });
+  }
+
   render() {
     const {
       //loading,
@@ -120,11 +140,13 @@ class ActuatorDetailBaseComponent extends Component {
       actuatorTypeID,
       actuatorTypeModalIndex,
       open,
+      newCode,
+      newMACAddress,
     } = this.state;
     return (
       <div>
         <Header as="h2">Actuator: {actuator.name}</Header>
-        <Divider horizontal section>
+        <Divider horizontal section style={{ color: "red" }}>
           Edit actuator
               </Divider>
         <Grid centered columns={2}>
@@ -157,14 +179,23 @@ class ActuatorDetailBaseComponent extends Component {
                     onChange={this.onChange}
                   />
                 </Form.Field>
-
+                <Form.Field>
+                  <label>MACAdress</label>
+                  <input
+                    name="newMACAddress"
+                    type="text"
+                    value={newMACAddress}
+                    onChange={this.onChange}
+                    // placeholder="think about name of your sensor..."
+                  />
+                </Form.Field>
                 <Button primary type="submit">
                   Submit
                       </Button>
               </Form>
 
             </div>
-            <Divider horizontal section>
+            <Divider horizontal section style={{ color: "red" }}>
               Remove actuator
                   </Divider>
             <Modal
@@ -187,6 +218,30 @@ class ActuatorDetailBaseComponent extends Component {
                 </Button>
               </Modal.Actions>
             </Modal>
+
+            <Divider horizontal section style={{ color: "red" }}>
+              Update program
+            </Divider>
+            <div>
+              <Form onSubmit={event => this.onUpdateProgram(event)}>
+              <label>New Code</label>
+                <Form.TextArea
+                 
+                  
+                    name="newCode"
+                    //type="textarea"
+                    value={newCode}
+                    onChange={this.onChange}
+                    // placeholder="think about name of your sensor..."
+                  >
+                </Form.TextArea>
+               
+                <Button primary type="submit">
+                  Submit
+                </Button>
+              </Form>
+            </div>
+
           </Grid.Column>
         </Grid>
       </div>

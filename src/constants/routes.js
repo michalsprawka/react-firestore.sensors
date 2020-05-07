@@ -10,4 +10,6 @@ export const ADMIN_USERS_DETAILS = '/admin/users/:id';
 export const SENSOR_DETAILS = '/sensor/:id';
 export const ACTUATOR_DETAILS = '/actuator/:id';
 export const ADMIN_SENSORTYPES = '/admin/sensortypes';
+export const ADMIN_ACTUATORTYPES = '/admin/actuatortypes';
 export const ADMIN_SENSORTYPES_DETAILS = '/admin/sensortypes/:id';
+export const ADMIN_ACTUATORTYPES_DETAILS = '/admin/actuatortypes/:id';

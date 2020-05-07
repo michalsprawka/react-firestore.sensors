@@ -40,11 +40,9 @@ class SensorDetailBaseComponent extends Component {
       const sensorTypeID = this.state.sensor.type;
       this.setState({ sensorTypeID });
       const newCode = this.state.sensor.code;
-      this.setState({ newCode });
+      newCode ? this.setState({ newCode }):  this.setState({newCode: ""});
       const newMACAddress = this.state.sensor.MACAddress;
-      this.setState({newMACAddress})
-
-     // return;
+      newMACAddress ? this.setState({newMACAddress}): this.setState({newMACAddress: ""});
     }
 
     //PORAWIC w props.location.state sensorTypes jest puste
@@ -91,29 +89,7 @@ class SensorDetailBaseComponent extends Component {
       })
     }
 
-    // this.props.firebase.sensorTypes().on("value", snapshot => {
-    //   const sensorTypesObject = snapshot.val();
-    //   if (sensorTypesObject) {
-    //     console.log("SENSORTYPES OBJECT: ", sensorTypesObject);
-    //     const sensorTypesList = Object.keys(sensorTypesObject).map(key => ({
-    //       ...sensorTypesObject[key],
-    //       key: key,
-    //       value: key,
-    //       // name: "sensorTypeID",
-    //       text: sensorTypesObject[key].name
-    //     }));
-
-    //     this.setState({
-    //       sensorTypes: sensorTypesList,
-    //       loading: false
-    //     });
-    //   } else {
-    //     this.setState({
-    //       sensorTypes: null,
-    //       loading: false
-    //     });
-    //   }
-    // });
+   
   }
 
   onEditSensor = event => {
@@ -176,11 +152,17 @@ class SensorDetailBaseComponent extends Component {
       newCode,
       newMACAddress
     } = this.state;
+    const isInvalidEditSensor = sensorName.length < 3 ||
+    sensorTypeID === "";
+    const isInvalidProgram = newMACAddress.length !== 16 ||
+    newCode === ""; 
+    
+
     return (
       <div>
         <Header as="h2">Sensor: {sensor.name}</Header>
 
-        <Divider horizontal section>
+        <Divider horizontal section style={{ color: "red" }}>
           Edit sensor
         </Divider>
         <Grid centered columns={2}>
@@ -223,12 +205,12 @@ class SensorDetailBaseComponent extends Component {
                   //value={sensorCheck}
                   checked={resetCheck}
                 />
-                <Button primary type="submit">
+                <Button primary type="submit" disabled={isInvalidEditSensor}>
                   Submit
                 </Button>
               </Form>
             </div>
-            <Divider horizontal section>
+            <Divider horizontal section style={{ color: "red" }}>
           Remove sensor
         </Divider>
             <Modal 
@@ -252,7 +234,7 @@ class SensorDetailBaseComponent extends Component {
               </Modal.Actions>
             </Modal>
 
-            <Divider horizontal section>
+            <Divider horizontal section style={{ color: "red" }}>
               Update program
             </Divider>
             <div>
@@ -269,7 +251,7 @@ class SensorDetailBaseComponent extends Component {
                   >
                 </Form.TextArea>
                
-                <Button primary type="submit">
+                <Button primary type="submit" disabled={isInvalidProgram}>
                   Submit
                 </Button>
               </Form>

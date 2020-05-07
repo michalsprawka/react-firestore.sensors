@@ -11,17 +11,6 @@ import {
  
 } from 'semantic-ui-react';
 
-// const AccountPage = () => (
-//   <AuthUserContext.Consumer>
-//     {authUser => (
-//       <div>
-//         <h1>Account: {authUser.email}</h1>
-//         <PasswordForgetForm />
-//         <PasswordChangeForm />
-//       </div>
-//     )}
-//   </AuthUserContext.Consumer>
-// );
 
 const AccountPage = () => (
   <AuthUserContext.Consumer>
